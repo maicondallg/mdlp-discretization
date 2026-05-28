@@ -1,0 +1,10 @@
+[build-system]
+# Build the Cython extension with isolation: Cython regenerates _mdlp.cpp from
+# the .pyx against the installed NumPy (2.x) ABI, so the wheel matches modern
+# NumPy at runtime. Project metadata stays in setup.py.
+requires = [
+    "setuptools>=64",
+    "cython>=3",
+    "numpy>=2",
+]
+build-backend = "setuptools.build_meta"

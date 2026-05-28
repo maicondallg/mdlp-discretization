@@ -133,7 +133,7 @@ class MDLP(BaseEstimator, TransformerMixin):
         continuous_features : (default None) a list of indices that you want to discretize
                               or a list (or array) of bools indicating the continuous features
         """
-        X = check_array(X, force_all_finite=True, ensure_2d=True, dtype=np.float64)
+        X = check_array(X, ensure_all_finite=True, ensure_2d=True, dtype=np.float64)
         y = column_or_1d(y)
         y = check_array(y, ensure_2d=False, dtype=int)
         X, y = check_X_y(X, y)
@@ -178,7 +178,7 @@ class MDLP(BaseEstimator, TransformerMixin):
         `k` is the number of bins the discretizer creates from a continuous
         feature.
         """
-        X = check_array(X, force_all_finite=True, ensure_2d=False)
+        X = check_array(X, ensure_all_finite=True, ensure_2d=False)
         check_is_fitted(self, "cut_points_")
 
         output = X.copy()
