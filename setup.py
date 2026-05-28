@@ -5,9 +5,36 @@ Implements the MDLP discretization criterion from Usama Fayyad's paper
 Classification Learning."
 """
 
+import os
+import shutil
+import sysconfig
+
 from setuptools import Extension, find_packages, setup
 
+
+def _ensure_compiler():
+    """Fall back to gcc/g++ when the interpreter's configured compiler is absent.
+
+    uv-managed CPython is built with clang, so sysconfig reports CC/CXX as
+    ``clang``/``clang++``. On machines without clang (common on Linux) the
+    build fails; substitute gcc/g++ when they exist. Honors a CC/CXX the user
+    already set, and leaves platforms where the configured compiler is present
+    (e.g. macOS clang) untouched.
+    """
+    for env_var, config_key, fallback in (
+        ("CC", "CC", "gcc"),
+        ("CXX", "CXX", "g++"),
+    ):
+        if os.environ.get(env_var):
+            continue
+        configured = (sysconfig.get_config_var(config_key) or "").split()
+        compiler = configured[0] if configured else ""
+        if compiler and shutil.which(compiler) is None and shutil.which(fallback):
+            os.environ[env_var] = fallback
+
+
 if __name__ == '__main__':
+    _ensure_compiler()
     # see https://stackoverflow.com/a/42163080 for the approach to pushing
     # numpy and cython dependencies into extension building only
     try:
