@@ -27,7 +27,7 @@ cdef inline void set_level(LEVEL level, SIZE_t start, SIZE_t end, SIZE_t depth):
 def MDLPDiscretize(col, y, int min_depth, FLOAT min_split):
     """Performs MDLP discretization on X and y"""
 
-    order = np.argsort(col)
+    order = np.argsort(col, kind="mergesort")
     col = col[order]
     y = y[order]
 
