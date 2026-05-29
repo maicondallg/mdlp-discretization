@@ -1,3 +1,4 @@
+# cython: language_level=3
 from __future__ import division
 import cython
 import numpy as np
@@ -9,7 +10,6 @@ from libc.math cimport INFINITY
 from libc.math cimport log, pow
 from libcpp.set cimport set as stdset
 from libcpp.vector cimport vector as stdvector
-from scipy.stats import entropy
 
 # some basic type definitions
 ctypedef np.npy_intp SIZE_t  # Type for indices and counters
@@ -83,7 +83,7 @@ cdef float get_cut(np.ndarray[np.float64_t, ndim=1] col, int ind):
     return (col[ind-1] + col[ind]) / 2
 
 @cython.boundscheck(False)
-def slice_entropy(np.ndarray[np.int_t, ndim=1] y, SIZE_t start, SIZE_t end):
+def slice_entropy(np.ndarray[np.int64_t, ndim=1] y, SIZE_t start, SIZE_t end):
     """Returns the entropy of the given slice of y. Also returns the
     number of classes within the interval.
 
@@ -92,10 +92,11 @@ def slice_entropy(np.ndarray[np.int_t, ndim=1] y, SIZE_t start, SIZE_t end):
     """
     counts = np.bincount(y[start:end])
     vals = np.true_divide(counts, end - start)
-    return entropy(vals), np.sum(vals != 0)
+    vals = vals[vals != 0]
+    return -np.sum(vals * np.log(vals)), len(vals)
 
 @cython.boundscheck(False)
-cdef bint reject_split(np.ndarray[np.int_t, ndim=1] y, int start, int end, int k):
+cdef bint reject_split(np.ndarray[np.int64_t, ndim=1] y, int start, int end, int k):
     """Using the minimum description length principal, determines
     whether it is appropriate to stop cutting.
     """
@@ -114,7 +115,7 @@ cdef bint reject_split(np.ndarray[np.int_t, ndim=1] y, int start, int end, int k
     return gain <= 1 / N * (log(N - 1) + delta)
 
 @cython.boundscheck(False)
-def find_cut(np.ndarray[np.int_t, ndim=1] y, int start, int end):
+def find_cut(np.ndarray[np.int64_t, ndim=1] y, int start, int end):
     """Finds the cut point between `start` and `end`.
 
     Returns an index, `k`, which splits `y` into two sub arrays A and B,
