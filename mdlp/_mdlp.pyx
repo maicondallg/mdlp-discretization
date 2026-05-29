@@ -10,7 +10,6 @@ from libc.math cimport INFINITY
 from libc.math cimport log, pow
 from libcpp.set cimport set as stdset
 from libcpp.vector cimport vector as stdvector
-from scipy.stats import entropy
 
 # some basic type definitions
 ctypedef np.npy_intp SIZE_t  # Type for indices and counters
@@ -27,7 +26,7 @@ cdef inline void set_level(LEVEL level, SIZE_t start, SIZE_t end, SIZE_t depth):
 def MDLPDiscretize(col, y, int min_depth, FLOAT min_split):
     """Performs MDLP discretization on X and y"""
 
-    order = np.argsort(col, kind="mergesort")
+    order = np.argsort(col, kind="stable")
     col = col[order]
     y = y[order]
 
@@ -93,7 +92,8 @@ def slice_entropy(np.ndarray[np.int64_t, ndim=1] y, SIZE_t start, SIZE_t end):
     """
     counts = np.bincount(y[start:end])
     vals = np.true_divide(counts, end - start)
-    return entropy(vals), np.sum(vals != 0)
+    vals = vals[vals != 0]
+    return -np.sum(vals * np.log(vals)), len(vals)
 
 @cython.boundscheck(False)
 cdef bint reject_split(np.ndarray[np.int64_t, ndim=1] y, int start, int end, int k):
